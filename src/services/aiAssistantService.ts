@@ -15,7 +15,35 @@ export async function processUserQuery(
   language: Language,
   profile: CitizenProfile = {}
 ): Promise<AssistantResponse> {
-  const cleanQuery = query.toLowerCase();
+  const cleanQuery = query.toLowerCase().trim();
+
+  // Handle specific document queries (Aadhaar, Ration Card, Income Certificate, etc.)
+  const isAadhaarQuery =
+    cleanQuery.includes('addhar') ||
+    cleanQuery.includes('aadhar') ||
+    cleanQuery.includes('adhar') ||
+    cleanQuery.includes('aadhaar');
+
+  if (isAadhaarQuery && !cleanQuery.includes('scholarship') && !cleanQuery.includes('farmer') && !cleanQuery.includes('kisan')) {
+    const aadhaarResponseText =
+      language === 'hi'
+        ? `आधार कार्ड (Aadhaar Card) भारत सरकार के UIDAI प्राधिकरण द्वारा जारी 12-अंकों का बायोमेट्रिक पहचान पत्र है।\n\nयह सभी प्रमुख सरकारी योजनाओं (जैसे PM-KISAN, आयुष्मान भारत, छात्रवृत्ति, आवास योजना) में डायरेक्ट बेनिफिट ट्रांसफर (DBT) और e-KYC के लिए अनिवार्य प्राथमिक दस्तावेज है।\n\nआधार कार्ड बनवाने, अपडेट करने या डाउनलोड करने के लिए UIDAI के आधिकारिक पोर्टल (uidai.gov.in) पर जाएँ।\n\nनीचे प्रमुख सरकारी योजनाएं दी गई हैं जिनमें आधार e-KYC अनिवार्य है:`
+        : language === 'hinglish'
+        ? `Aadhaar Card (UIDAI) India ka primary 12-digit biometric identity card hai.\n\nYeh almost sabhi Government Welfare Schemes (PM-KISAN, Ayushman Bharat, Post-Matric Scholarship, PMAY Housing, MUDRA loans) mein Direct Benefit Transfer (DBT) aur e-KYC ke liye mandatory identity proof hai.\n\nAadhaar Card apply, update ya download karne ke liye official portal (uidai.gov.in) visit karein.\n\nNeeche top government schemes dekhein jahan Aadhaar e-KYC required hai:`
+        : language === 'bn'
+        ? `আধার কার্ড (Aadhaar Card) হল ১২-সংখ্যার একটি বায়োমেট্রিক পরিচয়পত্র। এটি প্রতিটি সরকারি প্রকল্পের (ডিবিটি এবং ই-কেওয়াইসি) জন্য বাধ্যতামূলক। বিস্তারিত জানতে অফিশিয়াল পোর্টাল (uidai.gov.in) পরিদর্শন করুন।`
+        : language === 'ta'
+        ? `ஆதார் அட்டை (Aadhaar Card) என்பது UIDAI அமைப்பால் வழங்கப்படும் 12-இலக்க அடையாள ஆவணமாகும். அரசு நலத்திட்டங்களின் DBT சலுகைகளைப் பெற ஆதார் கட்டாயமாகும். uidai.gov.in இணையதளத்தைப் பார்க்கவும்.`
+        : `Aadhaar Card is India's primary 12-digit biometric identity document issued by UIDAI.\n\nIt is mandatory for e-KYC and Direct Benefit Transfer (DBT) across almost all central and state government schemes (such as PM-KISAN, Ayushman Bharat, Scholarships, and PMAY Housing).\n\nTo apply for, update, or download your Aadhaar Card, please visit the official UIDAI portal at uidai.gov.in.\n\nBelow are top government schemes that require Aadhaar verification:`;
+
+    const matchedSchemes = findRelevantSchemes(query, profile);
+    await new Promise((resolve) => setTimeout(resolve, 250));
+
+    return {
+      text: aadhaarResponseText,
+      schemes: matchedSchemes.slice(0, 4),
+    };
+  }
 
   // Extract implied intent from query
   let extractedProfile: CitizenProfile = { ...profile };

@@ -1,6 +1,42 @@
 import { SCHEMES_DATASET } from '../data/schemes';
 import type { CitizenProfile, EligibilityResult, CriterionCheck, Scheme } from '../types/scheme';
 
+// Stop-words to ignore in keyword tokenization to prevent broad over-matching
+const GENERIC_STOP_WORDS = new Set([
+  'card',
+  'yojana',
+  'scheme',
+  'schemes',
+  'government',
+  'govt',
+  'india',
+  'pm',
+  'get',
+  'for',
+  'the',
+  'and',
+  'with',
+  'main',
+  'mein',
+  'hoon',
+  'hai',
+  'kya',
+  'kaun',
+  'si',
+  'ko', 'par', 'se', 'ke', 'ki', 'ka', 'mil', 'sakti', 'hain', 'want', 'need', 'how', 'what', 'which'
+]);
+
+// Map common query typos & aliases to normalized search terms
+function normalizeQuery(rawQuery: string): string {
+  let q = rawQuery.toLowerCase();
+  q = q.replace(/\b(addhar|aadhar|adhar|adharcard|addharcard)\b/g, 'aadhaar');
+  q = q.replace(/\b(scolarship|scolaship|sholarship)\b/g, 'scholarship');
+  q = q.replace(/\b(ayusman|ayushmann|ayusham)\b/g, 'ayushman');
+  q = q.replace(/\b(kisan|kisann|kissan)\b/g, 'kisan');
+  q = q.replace(/\b( आवास | awas | aawas )\b/g, 'awas');
+  return q;
+}
+
 /**
  * Filter schemes based on search query keywords, citizen profile, and explicit UI filter dropdowns.
  */
@@ -9,10 +45,14 @@ export function findRelevantSchemes(
   profile: CitizenProfile = {},
   filters: { state?: string; occupation?: string; category?: string } = {}
 ): Scheme[] {
-  const cleanQuery = query.toLowerCase().trim();
+  const normalizedQuery = normalizeQuery(query).trim();
 
-  // Keyword extraction from query
-  const queryTokens = cleanQuery ? cleanQuery.split(/\s+/).filter((t) => t.length > 2) : [];
+  // Extract non-stopword tokens from normalized query
+  const rawTokens = normalizedQuery ? normalizedQuery.split(/\s+/).filter((t) => t.length >= 3) : [];
+  const queryTokens = rawTokens.filter((token) => !GENERIC_STOP_WORDS.has(token));
+
+  // Fallback to raw tokens if all tokens were filtered out (e.g. searching just "card")
+  const effectiveTokens = queryTokens.length > 0 ? queryTokens : rawTokens;
 
   return SCHEMES_DATASET.filter((scheme) => {
     // 1. State Filter
@@ -48,7 +88,7 @@ export function findRelevantSchemes(
     }
 
     // 5. Query Keyword Matching Score
-    if (queryTokens.length > 0) {
+    if (effectiveTokens.length > 0) {
       const searchableText = (
         scheme.name +
         ' ' +
@@ -58,10 +98,12 @@ export function findRelevantSchemes(
         ' ' +
         scheme.category +
         ' ' +
-        scheme.keywords.join(' ')
+        scheme.keywords.join(' ') +
+        ' ' +
+        scheme.requiredDocuments.join(' ')
       ).toLowerCase();
 
-      const matchCount = queryTokens.filter((token) => searchableText.includes(token)).length;
+      const matchCount = effectiveTokens.filter((token) => searchableText.includes(token)).length;
       if (matchCount === 0) {
         return false;
       }
@@ -69,9 +111,9 @@ export function findRelevantSchemes(
 
     return true;
   }).sort((a, b) => {
-    // Priority score sorting based on profile match
-    const scoreA = calculateProfileMatchScore(a, profile);
-    const scoreB = calculateProfileMatchScore(b, profile);
+    // Priority score sorting based on profile match & query relevance
+    const scoreA = calculateProfileMatchScore(a, profile, effectiveTokens);
+    const scoreB = calculateProfileMatchScore(b, profile, effectiveTokens);
     return scoreB - scoreA;
   });
 }
@@ -79,8 +121,17 @@ export function findRelevantSchemes(
 /**
  * Calculates a profile match score (0-100)
  */
-function calculateProfileMatchScore(scheme: Scheme, profile: CitizenProfile): number {
+function calculateProfileMatchScore(scheme: Scheme, profile: CitizenProfile, tokens: string[] = []): number {
   let score = 70; // Base baseline match
+
+  if (tokens.length > 0) {
+    const text = (scheme.name + ' ' + scheme.shortDescription + ' ' + scheme.keywords.join(' ')).toLowerCase();
+    tokens.forEach((t) => {
+      if (text.includes(t)) {
+        score += 20;
+      }
+    });
+  }
 
   if (profile.age !== undefined) {
     if (
