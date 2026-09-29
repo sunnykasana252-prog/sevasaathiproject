@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import ClickSpark from './components/ClickSpark';
 import type { Language, Scheme, CitizenProfile } from './types/scheme';
 import { DisclaimerBanner } from './components/DisclaimerBanner';
 import { Navbar } from './components/Navbar';
@@ -51,7 +52,16 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
+    <ClickSpark
+      sparkColor="#818cf8"
+      sparkSize={12}
+      sparkRadius={20}
+      sparkCount={10}
+      duration={500}
+      easing="ease-out"
+      extraScale={1.2}
+    >
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-orange-500 selection:text-white">
       
       {/* Top Disclaimer Banner */}
       <DisclaimerBanner language={language} />
@@ -142,6 +152,7 @@ export function App() {
       />
 
     </div>
+    </ClickSpark>
   );
 }
 

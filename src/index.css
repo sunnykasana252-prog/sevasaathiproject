@@ -3,63 +3,93 @@
 @layer base {
   :root {
     --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    /* Tricolor Pride Light Theme Tokens */
+    --bg-base:      #f8fafc;
+    --bg-hero:      #fff7ed;
+    --bg-card:      #ffffff;
+    --bg-muted:     #f1f5f9;
+    --bg-panel:     #ffffff;
+    --text-primary: #0f172a;
+    --text-muted:   #64748b;
+    --text-subtle:  #94a3b8;
+    --border:       #e2e8f0;
+    --saffron:      #f97316;
+    --saffron-dark: #ea6c00;
+    --emerald:      #10b981;
+    --navy:         #0f172a;
   }
-  
+
   body {
     font-family: var(--font-sans);
-    background-color: #0f172a;
-    color: #f8fafc;
+    background-color: var(--bg-base);
+    color: var(--text-primary);
     min-height: 100vh;
     overflow-x: hidden;
   }
 }
 
-/* Custom Utilities & Animations */
+/* ── Tricolor divider stripe ─────────────────────────── */
+.tricolor-stripe {
+  height: 4px;
+  background: linear-gradient(to right, #f97316 33.3%, #ffffff 33.3% 66.6%, #10b981 66.6%);
+}
+
+/* ── Light glass / panel ─────────────────────────────── */
 .glass-panel {
-  background: rgba(30, 41, 59, 0.7);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
 }
 
 .glass-card {
-  background: rgba(30, 41, 59, 0.5);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 2px 12px rgba(0,0,0,0.04);
   transition: all 0.2s ease-in-out;
 }
 
 .glass-card:hover {
-  background: rgba(30, 41, 59, 0.8);
-  border-color: rgba(59, 130, 246, 0.3);
+  border-color: #f97316;
+  box-shadow: 0 4px 20px rgba(249, 115, 22, 0.12), 0 0 0 1px rgba(249,115,22,0.2);
   transform: translateY(-2px);
 }
 
+/* ── Gradient text (saffron) ─────────────────────────── */
 .gradient-text {
-  background: linear-gradient(135deg, #60a5fa 0%, #a855f7 50%, #f43f5e 100%);
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .gradient-text-sih {
-  background: linear-gradient(135deg, #f97316 0%, #ffffff 50%, #22c55e 100%);
+  background: linear-gradient(135deg, #f97316 0%, #ffffff 50%, #10b981 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
+/* ── Ambient glow blobs ──────────────────────────────── */
 .gradient-glow {
   position: absolute;
   border-radius: 50%;
   filter: blur(80px);
   pointer-events: none;
-  opacity: 0.25;
+  opacity: 0.18;
 }
 
 @keyframes pulseSlow {
-  0%, 100% { opacity: 0.3; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(1.05); }
+  0%, 100% { opacity: 0.15; transform: scale(1); }
+  50%       { opacity: 0.28; transform: scale(1.05); }
 }
 
 .animate-pulse-slow {
   animation: pulseSlow 6s infinite ease-in-out;
+}
+
+/* ── Saffron left-border card accent ─────────────────── */
+.card-saffron-border {
+  border-left: 4px solid #f97316;
 }
